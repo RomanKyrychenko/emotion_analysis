@@ -1,0 +1,19 @@
+library(httr)
+library(gtools)
+
+filenames <- list.files("D:/New folder/", pattern="*.png", full.names=TRUE)
+
+body <- lapply(filenames,upload_file)
+face_api_url <- "https://api.projectoxford.ai/emotion/v1.0/recognize"
+yula <- lapply(body[501:550],function (x) {
+  a <- as.data.frame(
+    content(
+      POST(
+        face_api_url, body = x,
+        add_headers(.headers = c("Content-Type"="application/octet-stream","Ocp-Apim-Subscription-Key"="66fa8f09419c49478fe0fcef196b1ac2")))))
+  a
+})
+
+yula_df <- do.call("smartbind",yula)
+
+tiger <- image_read(filenames[12414])
