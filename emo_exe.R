@@ -1,5 +1,10 @@
+ #!/usr/local/bin/Rscript
+library(tcltk2)
+
+Sys.setlocale(,"UK_ua")
+
 mydialog <- function(){
-  xvar <- tclVar("")
+  xvar <- tclVar("90cde69ab770444e8aca06c3bb65e977")
   fvar <- tclVar("")
   tt <- tktoplevel()
   tkwm.title(tt,"Аналіз емоцій")
@@ -46,8 +51,7 @@ mydialog <- function(){
     )
     
     operationLocation <- httr::headers(faceEMO)[["operation-location"]]
-    pb <- tkProgressBar("Прогрес", "Проаналізовано %",
-                        0, 100, 50)
+    pb <- tkProgressBar("Прогрес", "Проаналізовано %",0, 100, 50)
     while(TRUE){
       ret <- httr::GET(operationLocation,
                        httr::add_headers(.headers = c('Ocp-Apim-Subscription-Key' = tclvalue(xvar))))
@@ -75,12 +79,47 @@ mydialog <- function(){
       }) %>% bind_rows()
     })
     data <-data %>% unnest(events)
+    write.csv(data,"emotions.csv")
   }
-  
+  tt$env$menu <- tk2menu(tt)
+  tkconfigure(tt, menu = tt$env$menu)
+  tt$env$menuFile <- tk2menu(tt$env$menu, tearoff = FALSE)
+  # Our cascaded menu
+  tt$env$menuOpenRecent <- tk2menu(tt$env$menuFile, tearoff = FALSE)
+  tkadd(tt$env$menuOpenRecent, "command", label = "Завантажити останнє",
+        command = function() tkmessageBox(
+          message = "I don't know how to open Recent File 1", icon = "error"))
+  tkadd(tt$env$menuOpenRecent, "command", label = "Завантажити",
+        command = function() tkmessageBox(
+          message = "I don't know how to open Recent File 2", icon = "error"))
+  tkadd(tt$env$menuFile, "cascade", label = "Відео",
+        menu = tt$env$menuOpenRecent)
+  tkadd(tt$env$menuFile, "command", label = "Завершити роботу",
+        command = function() tkdestroy(tt))
+  tkadd(tt$env$menu, "cascade", label = "Файл", menu = tt$env$menuFile)
+  tkadd(tt$env$menu, "cascade", label = "Аналіз", menu = tt$env$menuFile)
+  tkadd(tt$env$menu, "cascade", label = "Візуалізації", menu = tt$env$menuFile)
+  tkadd(tt$env$menu, "cascade", label = "Показники", menu = tt$env$menuFile)
+  tkadd(tt$env$menu, "cascade", label = "Допомога", menu = tt$env$menuFile)
   tkgrid(tklabel(tt,text="Введіть ключ Microsoft API"),columnspan=3, pady = 10)
   ea <- tkbutton(tt, text="Проаналізувати емоції", command=analyse)
   tkgrid(tklabel(tt,text="Ключ"), x.entry, pady= 10, padx= 20)
   tkgrid(submit.but, reset.but, ea, quit.but, pady= 10, padx= 10)
+  #tt$env$frm <- tk2frame(tt, relief = "sunken", padding = 10)
+  #require(tkrplot)
+  #require(ggplot2)
+  #
+  #hscale <- 1  # Horizontal scaling
+  #vscale <- 1   # Vertical scaling
+  #
+  #plotTk <- function() {
+  #  x <- -100:100
+  #  y <- x^2
+  #  plot(ggplot()+geom_point(aes(x, y)))
+  #}
+  #
+  #tt$env$plot <- tkrplot(tt, fun = plotTk,hscale = hscale, vscale = vscale)
+  #tkgrid(tt$env$plot)
 }
 
 mydialog()
